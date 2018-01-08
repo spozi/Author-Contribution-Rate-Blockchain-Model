@@ -1,0 +1,6 @@
+[submodule "etherpad-lite"]
+	path = etherpad-lite
+	url = https://github.com/spozi/etherpad-lite.git
+[submodule "DataTransaction"]
+	path = DataTransaction
+	url = https://github.com/spozi/DataTransaction.git
