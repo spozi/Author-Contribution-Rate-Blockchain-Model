@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const nem = require("nem-sdk").default;
 const express = require('express');
 const my_lzma = require('lzma');
+const LZUTF8 = require('lzutf8');
+
 const app = express();
 
 
@@ -70,24 +72,24 @@ app.get('/', function (req, res) {
 
 app.get('/update', function(req, res){
     connection.query('SELECT * FROM `etherpad-lite`.store WHERE `key` REGEXP "^pad";', function(err, rows, fields){
-        var encrypted = encrypt("My name is Muhammad Syafiq the best in the world");
-        sendToBlockchainAccount(encrypted);
+        var numberPattern = /\d+/g;
+        var tempstr = "";
+        for(row in rows){
+            var rec = rows[row];
+            var rec_id = rec["key"].match(numberPattern);
+            if (rec_id % 10 == 0 && rec_id != 0){
+                //Compress
+                var output = LZUTF8.compress(tempstr, {outputEncoding: "Base64"});
+                //Encrypt
+                var encrypted = encrypt(output);
+                console.log(encrypted.length);
+                //Send to blockchain
+                sendToBlockchainAccount(encrypted);
+            }
+            else if(rec_id !== null)
+                tempstr += rec;
+        }
         res.send("Finish");
-        //Compress
-        // my_lzma.compress("My name is Muhammad Syafiq the best in the world", compression_mode, function(result){
-        //     var compressed = new Buffer(result)
-        //     // console.log("Compressed: " + compressed);
-        //     var encrypted = encrypt(compressed)
-        //     // console.log("Size of encrypted: " + encrypted.length)
-        //     // console.log("Encrypted: " + encrypted);
-        //
-        //     sendToBlockchainAccount(encrypted);
-        //     // setTimeout(retrieveFromBlockchainUsingAccount(nem_endpoint, nem_address), 60);
-        //     // retrieveFromBlockchainUsingAccount(nem_endpoint, nem_address);
-        //
-        //     res.send("Finish");
-        // });
-        // res.send("Finish");
     });
 });
 
@@ -102,7 +104,6 @@ app.get('/request', function(req, res){
                     if (typeof message != 'undefined') {
                         var fmt = nem.utils.format.hexMessage(message);
                         var decrypted = decrypt(fmt);
-                        // res.send(decrypted);
                         console.log(decrypted);
                         break message;
                     }
