@@ -1,0 +1,1 @@
+This is simple script to explore blockchain.
